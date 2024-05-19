@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "7017992430",
+    "project_id": "flutter-class-with-aiia-47832",
+    "storage_bucket": "flutter-class-with-aiia-47832.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:7017992430:android:d210107a24fa66017263ff",
+        "android_client_info": {
+          "package_name": "aiia.lab.aiia_drive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOviepFx0nYK2xo2p3KoqkWgOJHiP8MpE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
