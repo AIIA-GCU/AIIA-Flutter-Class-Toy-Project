@@ -12,7 +12,7 @@
 class FileInfo {
   final String name;
   final String path;
-  final String url;
+  final String? url;
   final String type;
   final int size;
 
@@ -26,5 +26,15 @@ class FileInfo {
       json['type'],
       json['size'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'path': path,
+      'url': url ?? "(none)",
+      'type': type,
+      'size': size,
+    };
   }
 }
