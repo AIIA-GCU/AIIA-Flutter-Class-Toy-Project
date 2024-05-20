@@ -1,5 +1,6 @@
 import 'package:aiia_drive/firebase/firebase_options.dart';
 import 'package:aiia_drive/pages/home_page.dart';
+import 'package:aiia_drive/pages/protaku_search_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const SearchPage(),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 ///
 /// class FileInfo
 ///
@@ -15,8 +17,9 @@ class FileInfo {
   final String? url;
   final String type;
   final int size;
+  final Uint8List? data;
 
-  FileInfo(this.name, this.path, this.url, this.type, this.size);
+  FileInfo(this.name, this.path, this.url, this.type, this.size, {this.data});
 
   factory FileInfo.fromJson(Map<String, dynamic> json) {
     return FileInfo(
@@ -25,6 +28,7 @@ class FileInfo {
       json['url'],
       json['type'],
       json['size'],
+      data: json['data']
     );
   }
 
