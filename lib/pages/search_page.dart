@@ -1,9 +1,24 @@
 import 'package:aiia_drive/config/color.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class search_page extends StatelessWidget {
-  const search_page({super.key});
+class search_page extends StatefulWidget {
+  search_page({super.key});
+
+  @override
+  State<search_page> createState() => _search_pageState();
+}
+
+class _search_pageState extends State<search_page> {
+  final searchcontroller = TextEditingController();
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +26,7 @@ class search_page extends StatelessWidget {
       appBar: AppBar(
         leading: Icon(Icons.circle),
         title: Text(
-          "AIIA Drive",
+          "AIIA 드라이브",
           style: TextStyle(
             color: Color(0xFF5A5A5A),
             fontSize: 18,
@@ -37,6 +52,7 @@ class search_page extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: TextField(
+                  controller: searchcontroller,
                   decoration: InputDecoration(
                     hintText: "이름",
                     contentPadding:
@@ -57,18 +73,23 @@ class search_page extends StatelessWidget {
             indent: 12,
             endIndent: 8,
           ),
+          Expanded(child: Placeholder(
+            child: Placeholder(),
+          )),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(items: [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.looks_one),
-          label: "1"
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.looks_two),
-          label: "2"
-        ),
-      ]),
+      bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          iconSize: 32,
+          backgroundColor: Color.fromRGBO(255, 235, 168, 1),
+          selectedItemColor: Palette.primaryColor,
+          unselectedItemColor: Color.fromRGBO(124, 124, 124, 1),
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.folder), label: "내 폴더"),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.qr_code_scanner), label: "마이 페이지"),
+          ]),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         child: Icon(
@@ -80,6 +101,33 @@ class search_page extends StatelessWidget {
         elevation: 0,
       ),
       // floatingActionButtonLocation: FloatingActionButtonLocation.,
+    );
+  }
+}
+
+class Builder extends StatefulWidget {
+  const Builder({super.key});
+
+  @override
+  State<Builder> createState() => _BuilderState();
+}
+
+class _BuilderState extends State<Builder> {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('drive').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          }
+          return ListView.builder(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          itemCount: snapshot.data?.docs.length,
+          itemBuilder: (context, index) => Container()
+                    );
+        }
     );
   }
 }
