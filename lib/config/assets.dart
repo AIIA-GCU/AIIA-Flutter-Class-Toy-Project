@@ -29,9 +29,6 @@ class LogoPath {
 /// [cancel],
 /// [logout],
 /// [imageIcon],
-/// [videoIcon],
-/// [audioIcon],
-/// [textIcon]
 ///
 class IconSrc {
   static const IconData search = Icons.search;
@@ -43,7 +40,4 @@ class IconSrc {
   static const IconData cancel = Icons.close;
   static const IconData logout = Icons.door_front_door;
   static const IconData imageIcon = Icons.image;
-  static const IconData videoIcon = Icons.video_library;
-  static const IconData audioIcon = Icons.audiotrack;
-  static const IconData textIcon = Icons.insert_drive_file;
 }

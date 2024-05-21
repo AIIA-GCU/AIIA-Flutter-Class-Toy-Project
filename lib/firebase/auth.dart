@@ -9,9 +9,10 @@ enum AuthStatus {
   loginFail
 }
 
+User? user;
+
 class FirebaseAuthProvider with ChangeNotifier {
   late final FirebaseAuth authClient;
-  User? user;
 
   FirebaseAuthProvider() {
     authClient = FirebaseAuth.instance;
@@ -53,6 +54,7 @@ class FirebaseAuthProvider with ChangeNotifier {
     prefs.setString('password', '');
     user = null;
     await authClient.signOut();
+    print("로그아웃 성공");
   }
 }
 

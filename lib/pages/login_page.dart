@@ -1,10 +1,11 @@
-import 'package:aiia_drive/config/color.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import '../config/color.dart';
 import '../config/font.dart';
-import '../config/assets.dart';
-import '../firebase/authentication.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../firebase/auth.dart';
+
+import 'main/frame.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -148,7 +149,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 _emailController.clear();
                                 _passwordController.clear();
                                 _passwordConfirmController.clear();
-                                setState(() => hasError = false);
+                                setState(() {
+                                  hasError = false;
+                                  errorMsg = "";
+                                });
                               },
                             ),
                             AnimatedContainer(
@@ -209,11 +213,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     AuthStatus status = await authProvider.loginWithEmail(email, password);
     if (status == AuthStatus.loginSuccess) {
       print('로그인 성공');
+      entry.remove();
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainFrame()));
     } else {
       print('로그인 실패');
+      entry.remove();
     }
 
-    entry.remove();
   }
 
   Future<void> _register(String email, String password, String passwordConfirm) async {
@@ -232,6 +239,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final status = await authProvider.registerWithEmail(email, password);
     if (status == AuthStatus.registerSuccess) {
       print('회원가입 성공');
+      toastMsg("회원가입 성공");
+      _tabController.animateTo(0);
     } else {
       print('회원가입 실패');
       showDialog(
@@ -260,13 +269,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  void toastMsg() {
+  void toastMsg(String msg) {
     isToastShown = true;
     Future.delayed(const Duration(seconds: 2))
         .then((_) => isToastShown = false);
 
     Fluttertoast.showToast(
-      msg: "아직 준비되지 않은 기능입니다.",
+      msg: msg,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       backgroundColor: Palette.base1.withOpacity(0.6),
@@ -305,7 +314,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             Text(errorMsg, style: Fonts.label.copyWith(color: Palette.error)),
             const Spacer(),
             GestureDetector(
-              onTap: () { if (!isToastShown) toastMsg(); },
+              onTap: () { if (!isToastShown) toastMsg("아직 준비되지 않은 기능입니다"); },
               child: Text("비밀번호 찾기", style: Fonts.label),
             )
           ]

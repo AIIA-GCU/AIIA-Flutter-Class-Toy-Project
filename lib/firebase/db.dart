@@ -28,13 +28,15 @@ class DB {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getData() async {
+  Future<List<Map<String, dynamic>>> getData(String? str) async {
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore.collection(collectionName).get();
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> snapshot;
+      snapshot = (await _firestore.collection(collectionName).get()).docs;
+      if (str != null) {
+        snapshot = snapshot.where((e) => e.data()['name'].toString().contains(str)).toList();
+      }
       List<Map<String, dynamic>> data = [];
-      querySnapshot.docs.forEach((element) {
-        data.add(element.data());
-      });
+      snapshot.forEach((element) => data.add(element.data()));
       return data;
     } catch (e) {
       print(e);

@@ -1,6 +1,6 @@
+import 'package:aiia_drive/config/color.dart';
 import 'package:aiia_drive/firebase/firebase_options.dart';
-import 'package:aiia_drive/pages/home_page.dart';
-import 'package:aiia_drive/pages/protaku_search_page.dart';
+import 'package:aiia_drive/pages/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -20,9 +20,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AIIA Drive',
       theme: ThemeData(
-        useMaterial3: true,
+        primaryColor: Palette.primaryColor,
+        primaryColorDark: Palette.primaryDarkColor,
+        primaryColorLight: Palette.primaryLightColor,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: false,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+        dialogBackgroundColor: Colors.white,
+        focusColor: Palette.primaryColor,
       ),
-      home: const SearchPage(),
+      home: const LoginPage(),
     );
   }
 }
