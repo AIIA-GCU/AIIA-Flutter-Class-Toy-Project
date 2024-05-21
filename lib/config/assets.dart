@@ -17,7 +17,7 @@ class LogoPath {
 /// class imagePath
 /// Class to store the path of the main Image
 class ImagePath{
-  static const String ellipse ='assets/images/Ellipse1.png';
+  static const String ellipse ='assets/images/ellipse1.png';
 }
 
 ///
