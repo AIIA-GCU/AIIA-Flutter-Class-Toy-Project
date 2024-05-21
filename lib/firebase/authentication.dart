@@ -10,20 +10,23 @@ enum AuthStatus {
 }
 
 class FirebaseAuthProvider with ChangeNotifier {
-  FirebaseAuth authClient;
+  late final FirebaseAuth authClient;
   User? user;
 
-  FirebaseAuthProvider({auth}) : authClient = auth ?? FirebaseAuth.instance;
+  FirebaseAuthProvider() {
+    authClient = FirebaseAuth.instance;
+  }
 
   Future<AuthStatus> registerWithEmail(String email, String password) async {
     try {
-      UserCredential credential = await authClient
-          .createUserWithEmailAndPassword(email: email, password: password);
+      await authClient.createUserWithEmailAndPassword(email: email, password: password);
       return AuthStatus.registerSuccess;
     } catch (e) {
+      print(e);
       return AuthStatus.registerFail;
     }
   }
+
   Future<AuthStatus> loginWithEmail(String email, String password) async {
     try {
       await authClient.signInWithEmailAndPassword(
@@ -38,6 +41,7 @@ class FirebaseAuthProvider with ChangeNotifier {
       );
       return AuthStatus.loginSuccess;
     } catch (e) {
+      print(e);
       return AuthStatus.loginFail;
     }
   }

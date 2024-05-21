@@ -17,4 +17,6 @@ class Palette {
   static const Color base4 = Color(0xFF9D9D9D);
   static const Color base5 = Color(0xFFA4A4A4);
   static const Color base6 = Color(0xFFFFFFFF);
+
+  static const Color error = Color(0xFFD80000);
 }

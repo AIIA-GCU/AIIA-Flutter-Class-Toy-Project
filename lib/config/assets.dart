@@ -13,12 +13,6 @@ class LogoPath {
   static const String logoLight = 'assets/images/logo_light.png';
   static const String logoDark = 'assets/images/logo_dark.png';
 }
-///
-/// class imagePath
-/// Class to store the path of the main Image
-class ImagePath{
-  static const String ellipse ='assets/images/ellipse1.png';
-}
 
 ///
 /// class IconSrc

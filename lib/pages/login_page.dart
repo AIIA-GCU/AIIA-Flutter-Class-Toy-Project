@@ -1,7 +1,9 @@
+import 'package:aiia_drive/config/color.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../config/font.dart';
 import '../config/assets.dart';
-import '../models/model_auth.dart';
+import '../firebase/authentication.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -12,14 +14,21 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
-  final _emailLoginController = TextEditingController();
-  final _passwordLoginController = TextEditingController();
-  final _emailRegisterController = TextEditingController();
-  final _passwordRegisterController = TextEditingController();
+  static const double maxFormHeight = 250;
+  static const double minFormHeight = 180;
+
+  final FirebaseAuthProvider authProvider = FirebaseAuthProvider();
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _passwordConfirmController = TextEditingController();
 
+  bool isToastShown = false;
+  bool hasError = false;
+  String errorMsg = "";
+
   late TabController _tabController;
-  double _sizeChange = 229;
+  double _sizeChange = minFormHeight;
 
   @override
   void initState() {
@@ -31,9 +40,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   void _handleTabSelection() {
     setState(() {
       if (_tabController.index == 0) {
-        _sizeChange = 180;
+        _sizeChange = minFormHeight;
       } else {
-        _sizeChange = 260;
+        _sizeChange = maxFormHeight;
       }
     });
   }
@@ -41,239 +50,299 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   void dispose() {
     _tabController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
-    String email = _emailLoginController.text;
-    String password = _passwordLoginController.text;
+  @override
+  Widget build(BuildContext context) {
+    double titleTop, formTop, buttonTop;
+    if (MediaQuery.of(context).viewInsets.bottom > 0) {
+      titleTop = 50;
+      formTop = _sizeChange > 200 ? 150 : 200;
+      buttonTop = formTop + _sizeChange + 80;
+    } else {
+      titleTop = 100;
+      formTop = 350;
+      buttonTop = formTop + _sizeChange + 80;
+    }
 
-    FirebaseAuthProvider authProvider = FirebaseAuthProvider();
+    bool buttonStatus = isButtonActive();
+
+    return GestureDetector(
+      onTap: () {
+        if (MediaQuery.of(context).viewInsets.bottom > 0) {
+          FocusScope.of(context).unfocus();
+        }
+      },
+      child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 배경
+              Positioned(
+                left: -240,
+                top: -350,
+                child: Container(
+                  width: 680,
+                  height: 680,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(340),
+                      gradient: const RadialGradient(
+                          colors: [
+                            Palette.primaryColor,
+                            Palette.secondaryDarkColor
+                          ]
+                      )
+                  ),
+                ),
+              ),
+
+              // 타이틀
+              AnimatedPositioned(
+                curve: Curves.ease,
+                duration: const Duration(milliseconds: 150),
+                left: 28,
+                top: titleTop,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hello world!', style: Fonts.largeTitle),
+                    Text('AIIA 드라이브', style: Fonts.title),
+                  ],
+                ),
+              ),
+
+              // 입력폼
+              AnimatedPositioned(
+                  curve: Curves.ease,
+                  duration: const Duration(milliseconds: 150),
+                  top: formTop,
+                  left: 15,
+                  right: 15,
+                  child: DefaultTabController(
+                    length: 2,
+                    child: Card(
+                      elevation: 5,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            TabBar(
+                              controller: _tabController,
+                              isScrollable: false,
+                              indicatorColor: Palette.primaryColor,
+                              labelColor: Palette.primaryColor,
+                              splashFactory: NoSplash.splashFactory,
+                              tabs: [
+                                Tab(child: Text('Log in', style: Fonts.parag1)),
+                                Tab(child: Text('Join in', style: Fonts.parag1)),
+                              ],
+                              onTap: (_) {
+                                _emailController.clear();
+                                _passwordController.clear();
+                                _passwordConfirmController.clear();
+                                setState(() => hasError = false);
+                              },
+                            ),
+                            AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                height: _sizeChange,
+                                child: TabBarView(
+                                  controller: _tabController,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  children: <Widget>[
+                                    inputForm(isLogin: true),
+                                    inputForm(isLogin: false),
+                                  ],
+                                )
+                            )
+                          ]
+                      ),
+                    ),
+                  )
+              ),
+
+              // 버튼
+              AnimatedPositioned(
+                curve: Curves.ease,
+                duration: const Duration(milliseconds: 150),
+                top: buttonTop,
+                width: MediaQuery.of(context).size.width,
+                child: Center(
+                  child: InkWell(
+                    onTap: buttonStatus ? () {
+                      if (_tabController.index == 0) {
+                        _login(_emailController.text, _passwordController.text);
+                      } else {
+                        _register(_emailController.text, _passwordController.text, _passwordConfirmController.text);
+                      }
+                    } : null,
+                    borderRadius: BorderRadius.circular(50),
+                    child: Ink(
+                      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 36),
+                      decoration: BoxDecoration(
+                        color: buttonStatus ? Palette.primaryColor : Palette.base4,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Text('Enter', style: Fonts.parag1_w),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          )
+      ),
+    );
+  }
+
+  Future<void> _login(String email, String password) async {
+    final entry = OverlayEntry(builder: (context) => progress());
+    Overlay.of(context).insert(entry);
+
     AuthStatus status = await authProvider.loginWithEmail(email, password);
-
     if (status == AuthStatus.loginSuccess) {
       print('로그인 성공');
     } else {
       print('로그인 실패');
     }
+
+    entry.remove();
   }
 
-  Future<void> _register() async {
-    String email = _emailRegisterController.text;
-    String password = _passwordRegisterController.text;
-    String passwordConfirm = _passwordConfirmController.text;
-
+  Future<void> _register(String email, String password, String passwordConfirm) async {
     if (password != passwordConfirm) {
       print('비밀번호가 일치하지 않습니다.');
+      setState(() {
+        hasError = true;
+        errorMsg = '비밀번호가 일치하지 않습니다.';
+      });
       return;
     }
 
-    FirebaseAuthProvider authProvider = FirebaseAuthProvider();
-    AuthStatus status = await authProvider.registerWithEmail(email, password);
+    final entry = OverlayEntry(builder: (context) => progress());
+    Overlay.of(context).insert(entry);
 
+    final status = await authProvider.registerWithEmail(email, password);
     if (status == AuthStatus.registerSuccess) {
       print('회원가입 성공');
     } else {
       print('회원가입 실패');
+      showDialog(
+          context: context,
+          barrierColor: Palette.base1.withOpacity(0.25),
+          builder: (context) => AlertDialog(
+            title: Text('회원가입 실패', style: Fonts.parag1),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('확인', style: Fonts.parag1),
+              )
+            ],
+          )
+      );
+    }
+    entry.remove();
+  }
+
+  bool isButtonActive() {
+    if (_tabController.index == 0) {
+      return _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+    } else {
+      return _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty
+          && _passwordConfirmController.text.isNotEmpty;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        body: Directionality(
-          textDirection: TextDirection.ltr,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 356,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(ImagePath.ellipse),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(27.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello world!',
-                          style: Fonts.largeTitle,
-                        ),
-                        Text(
-                          'AIIA 드라이브',
-                          style: Fonts.title,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  margin: EdgeInsets.all(20),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 5,
-                    color: Colors.white,
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            constraints: BoxConstraints(maxHeight: 150.0),
-                            child: Material(
-                              color: Colors.white,
-                              child: TabBar(
-                                controller: _tabController,
-                                tabs: [
-                                  Tab(
-                                    child: Text(
-                                      'Log in',
-                                      style: Fonts.parag1,
-                                    ),
-                                  ),
-                                  Tab(
-                                    child: Text(
-                                      'Join in',
-                                      style: Fonts.parag1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            height: _sizeChange,
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        TextFormField(
-                                          controller: _emailLoginController,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                            hintText: 'E-mail',
-                                            hintStyle: TextStyle(color: Color(0xFF8B8B8B)),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        TextFormField(
-                                          controller: _passwordLoginController,
-                                          obscureText: true,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                            hintText: 'PW',
-                                            hintStyle: TextStyle(color: Color(0xFF8B8B8B)),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        TextFormField(
-                                          controller: _emailRegisterController,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                            hintText: 'E-mail',
-                                            hintStyle: TextStyle(color: Color(0xFF8B8B8B)),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        TextFormField(
-                                          controller: _passwordRegisterController,
-                                          obscureText: true,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                            hintText: 'PW',
-                                            hintStyle: TextStyle(color: Color(0xFF8B8B8B)),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        TextFormField(
-                                          controller: _passwordConfirmController,
-                                          obscureText: true,
-                                          decoration: InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                            hintText: 'PW 확인',
-                                            hintStyle: TextStyle(color: Color(0xFF8B8B8B)),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: Colors.black, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 20),
-                  child: SizedBox(
-                    width: 120,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFA4A4A4),
-                      ),
-                      onPressed: () {
-                        if (_tabController.index == 0) {
-                          _login();
-                        } else {
-                          _register();
-                        }
-                      },
-                      child: Text('Enter', style: Fonts.parag1_w),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  void toastMsg() {
+    isToastShown = true;
+    Future.delayed(const Duration(seconds: 2))
+        .then((_) => isToastShown = false);
+
+    Fluttertoast.showToast(
+      msg: "아직 준비되지 않은 기능입니다.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Palette.base1.withOpacity(0.6),
+    );
+  }
+
+  Widget progress() => Container(
+    width: double.infinity,
+    height: double.infinity,
+    alignment: Alignment.center,
+    color: Palette.base1.withOpacity(0.25),
+    child: const CircularProgressIndicator(),
+  );
+
+  Widget inputForm({required bool isLogin}) {
+    List<Widget> children = [
+      textField(_emailController, 'E-mail'), // textField(TextEditingController controller
+      const SizedBox(height: 10),
+      textField(_passwordController, 'PW (최소 6자리 이상)', isObscure: true), // textField(TextEditingController controller
+      const SizedBox(height: 10),
+    ];
+
+    if (isLogin == false) {
+      children.addAll([
+        textField(_passwordConfirmController, 'PW 확인', isObscure: true), // textField(TextEditingController controller
+        const SizedBox(height: 10)
+      ]);
+    }
+
+    children.add(
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            const SizedBox(width: 10),
+            Text(errorMsg, style: Fonts.label.copyWith(color: Palette.error)),
+            const Spacer(),
+            GestureDetector(
+              onTap: () { if (!isToastShown) toastMsg(); },
+              child: Text("비밀번호 찾기", style: Fonts.label),
+            )
+          ]
+        ),
+      )
+    );
+
+    return OverflowBox(
+      minHeight: minFormHeight,
+      maxHeight: maxFormHeight,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: children
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget textField(
+      TextEditingController controller,
+      String hint,
+      {bool isObscure = false}
+  ) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isObscure,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Palette.base3),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Palette.base1),
         ),
       ),
     );
