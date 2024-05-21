@@ -7,13 +7,15 @@ class Fonts {
   static final TextStyle largeTitle = GoogleFonts.neuton(
     fontSize: 48,
     fontWeight: FontWeight.w700,
-    letterSpacing: 1.6
+    letterSpacing: 1.6,
+    color: Colors.white
   );
 
   static final TextStyle title = GoogleFonts.notoSansKr(
     fontSize: 24,
     fontWeight: FontWeight.w700,
-    letterSpacing: 1.6
+    letterSpacing: 1.6,
+    color: Colors.white
   );
 
   static final TextStyle subtitle = GoogleFonts.notoSansKr(
@@ -31,7 +33,13 @@ class Fonts {
   static final TextStyle parag1 = GoogleFonts.notoSansKr(
     fontSize: 16,
     fontWeight: FontWeight.w700,
-    letterSpacing: 1
+    letterSpacing: 1,
+  );
+  static final TextStyle parag1_w = GoogleFonts.notoSansKr(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1,
+    color: Colors.white
   );
 
   static final TextStyle parag2 = GoogleFonts.notoSansKr(
